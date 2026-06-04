@@ -539,7 +539,10 @@
       title: "Thank you.",
       caption: "John Santerre, Ph.D.",
       source: "https://www.linkedin.com/in/john-santerre-phd-91609b6/",
-      sourceLabel: "LinkedIn"
+      sourceLabel: "LinkedIn",
+      links: [
+        { url: "https://www.youtube.com/@santerreai/featured", label: "YouTube" }
+      ]
     }
   ];
 
@@ -585,7 +588,8 @@
           ${s.kicker ? `<div class="kicker">${esc(s.kicker)}</div>` : ""}
           <div class="title">${nl2br(s.title)}</div>
           ${s.caption ? `<div class="caption">${esc(s.caption)}</div>` : ""}
-          ${s.source ? `<a class="source" href="${esc(s.source)}" target="_blank" rel="noopener">${esc(s.sourceLabel || s.source)}</a>` : ""}`;
+          ${s.source ? `<a class="source" href="${esc(s.source)}" target="_blank" rel="noopener">${esc(s.sourceLabel || s.source)}</a>` : ""}
+          ${(s.links || []).map(l => `<a class="source" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label || l.url)}</a>`).join("")}`;
       } else if (s.type === "html") {
         el.innerHTML = `
           ${s.kicker ? `<div class="kicker">${esc(s.kicker)}</div>` : ""}
