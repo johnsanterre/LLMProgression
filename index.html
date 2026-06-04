@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Managing the Context Window — Keynote Deck</title>
+<style>
+  :root {
+    --bg: #0a1429;
+    --bg2: #0d1a35;
+    --ink: #f3f6fc;
+    --muted: #9fb0cc;
+    --blue: #2f6fed;
+    --orange: #ff7a18;
+    --teal: #19c2c2;
+    --line: rgba(159,176,204,0.25);
+
+    /* ---- type scale · tuned for Zoom legibility (raised minimums) ---- */
+    --fs-kicker: clamp(13px, 1.15vw, 16px);  /* eyebrow labels        */
+    --fs-h1:     clamp(30px, 4.2vw, 58px);   /* slide titles, bio name */
+    --fs-h2:     clamp(23px, 2.6vw, 36px);   /* section / diagram titles */
+    --fs-h3:     clamp(18px, 1.8vw, 25px);   /* card headings          */
+    --fs-lead:   clamp(17px, 1.6vw, 23px);   /* captions, leads, key body */
+    --fs-body:   clamp(16px, 1.35vw, 20px);  /* card body, dense text  */
+    --fs-bullet: clamp(19px, 2.1vw, 29px);   /* summary bullets        */
+    --fs-small:  clamp(14px, 1.15vw, 17px);  /* sub-labels, footnotes, links */
+    --fs-chrome: 13px;                       /* counter, brand, hints  */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: radial-gradient(1200px 800px at 70% 20%, #102043 0%, var(--bg) 60%);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 4.5vh 6vw 9vh;
+    text-align: center;
+    opacity: 0;
+    transition: opacity .35s ease;
+  }
+  .slide.active { display: flex; opacity: 1; }
+
+  .kicker {
+    text-transform: uppercase;
+    letter-spacing: .28em;
+    font-size: var(--fs-kicker);
+    color: var(--orange);
+    font-weight: 700;
+    margin-bottom: 1.6vh;
+  }
+  .title {
+    font-size: var(--fs-h1);
+    font-weight: 800;
+    line-height: 1.05;
+    max-width: none;
+    white-space: nowrap;       /* keep titles on one line; JS auto-fits if too wide */
+    margin-bottom: 1.4vh;
+  }
+  .caption {
+    color: var(--muted);
+    font-size: var(--fs-lead);
+    max-width: 60ch;
+    line-height: 1.5;
+    margin-top: 2.2vh;
+  }
+  .note {
+    color: var(--muted);
+    font-size: var(--fs-body);
+    max-width: 64ch;
+    line-height: 1.5;
+    margin-top: 1.6vh;
+    opacity: .9;
+  }
+  .source {
+    position: relative; z-index: 10;       /* clickable above the nav zones */
+    display: inline-block; margin-top: 1vh; margin-left: .8em; margin-right: .8em;
+    color: var(--teal); font-size: var(--fs-small); letter-spacing: .04em;
+    text-decoration: none; border-bottom: 1px solid rgba(25,194,194,0.5);
+  }
+  .source:hover { color: #6fe3e3; border-bottom-color: #6fe3e3; }
+
+  /* ---- architecture diagram ---- */
+  .arch {
+    width: 94vw; max-width: 1340px;
+    display: grid; grid-template-columns: 1.25fr 38px 1.3fr 38px 0.85fr;
+    gap: 0; align-items: stretch; text-align: left;
+  }
+  .arch-col { display: flex; flex-direction: column; justify-content: center; gap: 1.1vh; }
+  .arch-group {
+    position: relative; border: 1.5px dashed var(--line); border-radius: 12px;
+    padding: 1.7vh 0.7vw 1.1vh; display: flex; flex-direction: column; gap: 0.7vh;
+  }
+  .arch-group .lbl {
+    position: absolute; top: -0.85em; left: 10px; background: #0a1730; padding: 0 6px;
+    font-size: clamp(11px, .85vw, 12px); letter-spacing: .14em; text-transform: uppercase; font-weight: 800;
+  }
+  .arch-group.static { border-color: rgba(47,111,237,.6); }  .arch-group.static .lbl { color: #6ea0ff; }
+  .arch-group.mem    { border-color: rgba(25,194,194,.6); }  .arch-group.mem .lbl    { color: #5fdede; }
+  .arch-group.rag    { border-color: rgba(47,111,237,.6); }  .arch-group.rag .lbl    { color: #6ea0ff; }
+  .arch-group.door   { border-color: rgba(25,194,194,.6); }  .arch-group.door .lbl   { color: #5fdede; }
+  .arch-group.harness{ border-color: rgba(255,122,24,.6); }  .arch-group.harness .lbl{ color: #ffae6b; }
+  .box {
+    background: linear-gradient(180deg, rgba(20,38,77,.9), rgba(12,23,48,.9));
+    border: 1px solid var(--line); border-radius: 8px; padding: 0.7vh 0.6vw;
+    font-size: clamp(12px, 1vw, 15px); font-weight: 600; color: var(--ink); line-height: 1.15;
+  }
+  .box small { display: block; font-weight: 400; color: var(--muted); font-size: .8em; margin-top: 1px; }
+  .box.mini { text-align: center; }
+  .hrow { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7vh 0.5vw; }
+  .arch-window {
+    margin-top: 1.1vh; background: rgba(255,122,24,.14); border: 2px solid var(--orange);
+    border-radius: 10px; padding: 1.1vh; text-align: center; font-weight: 800; color: #ffd9b8;
+    font-size: clamp(12px, 1.2vw, 17px);
+  }
+  .arch-window small { display: block; font-weight: 500; color: var(--muted); font-size: .68em; }
+  .arch-llm {
+    background: linear-gradient(180deg, rgba(47,111,237,.3), rgba(13,26,53,.7)); border: 2px solid var(--blue);
+    border-radius: 10px; padding: 1.6vh 0.8vw; text-align: center; font-weight: 800; font-size: clamp(13px, 1.3vw, 18px);
+  }
+  .arch-llm small { display: block; font-weight: 500; color: var(--muted); font-size: .68em; }
+  .box.resp { text-align: center; background: rgba(25,194,194,.14); border-color: var(--teal); font-weight: 700; }
+  .arch-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
+  .arch-arrow.down { font-size: 20px; }
+  .loop { margin-top: 0.8vh; text-align: center; font-size: clamp(12px, 1vw, 13px); color: var(--muted); letter-spacing: .03em; }
+
+  /* ---- bullets summary slide ---- */
+  .bullets { list-style: none; text-align: left; max-width: 64ch; margin-top: 3.5vh; display: flex; flex-direction: column; gap: 2.4vh; }
+  .bullets li { position: relative; padding-left: 1.7em; font-size: var(--fs-bullet); font-weight: 700; color: var(--ink); line-height: 1.25; }
+  .bullets li::before { content: "▹"; position: absolute; left: 0; color: var(--orange); }
+  .bullets li small { display: block; color: var(--muted); font-weight: 400; font-size: var(--fs-small); margin-top: .4em; line-height: 1.4; }
+
+  /* ---- two-card case-study slide ---- */
+  .cases-lead { margin-top: 1.2vh; font-size: var(--fs-lead); color: var(--muted); max-width: 70ch; }
+  .cases { display: flex; gap: 1.6vw; margin-top: 2.4vh; width: 100%; max-width: 1240px; align-items: stretch; }
+  .case-card { flex: 1; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.09); border-radius: 14px; padding: 2.4vh 1.4vw; text-align: left; display: flex; flex-direction: column; }
+  .case-card .co { font-size: var(--fs-h3); font-weight: 800; color: var(--ink); line-height: 1.15; }
+  .case-card .theme { font-size: var(--fs-small); color: var(--orange); font-weight: 700; margin: .45em 0 .9em; line-height: 1.25; }
+  .case-card p { font-size: var(--fs-body); color: var(--muted); line-height: 1.45; margin: 0; }
+
+  /* ---- before/after comparison slide ---- */
+  .cmp { display: flex; gap: 2.4vw; margin-top: 3vh; width: 100%; max-width: 1120px; align-items: stretch; }
+  .cmp-col { flex: 1; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 3vh 1.8vw; display: flex; flex-direction: column; align-items: center; }
+  .cmp-col h3 { margin: 0 0 1.8vh; font-size: var(--fs-h3); font-weight: 800; letter-spacing: .01em; }
+  .cmp-col.before h3 { color: var(--muted); }
+  .cmp-col.after h3 { color: var(--orange); }
+  .cmp-node { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 1vh 1.3vw; font-size: var(--fs-body); color: var(--ink); text-align: center; line-height: 1.2; }
+  .cmp-node small { display: block; color: var(--muted); font-size: .82em; margin-top: .25em; }
+  .cmp-arrow { color: var(--muted); font-size: 1.3em; margin: .6vh 0; }
+  .cmp-row { display: flex; gap: .7vw; flex-wrap: wrap; justify-content: center; }
+  .cmp-foot { margin-top: auto; padding-top: 2vh; font-size: var(--fs-small); color: var(--muted); text-align: center; line-height: 1.45; }
+  .cmp-note { margin-top: 3vh; max-width: 1000px; text-align: center; font-size: var(--fs-lead); color: var(--ink); line-height: 1.5; }
+  .cmp-note em { color: var(--orange); font-style: normal; font-weight: 700; }
+
+  /* ---- parallel sub-agents / A2A slide ---- */
+  .agents { display: flex; flex-direction: column; align-items: center; margin-top: 3.5vh; gap: 1.2vh; }
+  .agent-row { display: flex; align-items: center; gap: 1vw; flex-wrap: wrap; justify-content: center; }
+  .a2a-link { color: var(--orange); font-size: 1.5em; font-weight: 700; line-height: 1; }
+  .agents .label { font-size: var(--fs-small); color: var(--muted); margin-top: .4vh; }
+
+  .media { max-width: min(78vw, 1100px); max-height: 62vh; display: flex; }
+  .media img {
+    max-width: 100%; max-height: 62vh;
+    object-fit: contain;
+    border-radius: 14px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.55);
+  }
+
+  /* placeholder media */
+  .placeholder {
+    width: min(70vw, 920px);
+    height: 50vh;
+    border: 2px dashed var(--line);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(47,111,237,.08), rgba(255,122,24,.06));
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 1.4vh; padding: 4vh;
+  }
+  .placeholder .ph-tag {
+    font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--teal); font-weight: 700;
+  }
+  .placeholder .ph-desc { color: var(--muted); max-width: 52ch; line-height: 1.55; font-size: var(--fs-lead); }
+
+  /* bio slide */
+  .bio { display: flex; align-items: center; gap: 5vw; flex-wrap: wrap; justify-content: center; }
+  .bio .photo {
+    width: 30vh; height: 30vh; min-width: 220px; min-height: 220px;
+    border-radius: 50%;
+    border: 3px solid var(--orange);
+    background: linear-gradient(160deg, #15264d, #0c1730);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 14px; letter-spacing: .12em; text-transform: uppercase;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    overflow: hidden;
+  }
+  .bio .photo img { width: 100%; height: 100%; object-fit: cover; object-position: 27% 30%; }
+  .bio .who { text-align: left; max-width: 34ch; }
+  .bio .name { font-size: var(--fs-h1); font-weight: 800; line-height: 1.05; }
+  .bio .role { color: var(--orange); font-weight: 700; margin-top: 1vh; font-size: var(--fs-lead); }
+  .bio ul { list-style: none; margin-top: 2.4vh; display: flex; flex-direction: column; gap: 1vh; }
+  .bio li { color: var(--muted); font-size: var(--fs-lead); padding-left: 1.4em; position: relative; }
+  .bio li::before { content: "▹"; color: var(--teal); position: absolute; left: 0; }
+  .bio-link { display: inline-block; margin-top: 2.4vh; color: var(--orange); text-decoration: none; font-size: var(--fs-small); font-weight: 600; border-bottom: 1px solid rgba(255,255,255,.18); padding-bottom: 2px; }
+  .bio-link:hover { border-bottom-color: var(--orange); }
+
+  /* chrome */
+  .counter {
+    position: fixed; bottom: 3vh; right: 3vw;
+    color: var(--muted); font-size: var(--fs-chrome); letter-spacing: .15em;
+    font-variant-numeric: tabular-nums;
+  }
+  .brand {
+    position: fixed; top: 3vh; left: 3vw;
+    color: var(--muted); font-size: var(--fs-chrome); letter-spacing: .22em; text-transform: uppercase;
+  }
+  .dots { position: fixed; bottom: 3vh; left: 50%; transform: translateX(-50%); display: flex; gap: 9px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); cursor: pointer; transition: all .2s; }
+  .dot.active { background: var(--orange); transform: scale(1.35); }
+
+  .nav-hint { position: fixed; bottom: 3vh; left: 3vw; color: var(--muted); font-size: var(--fs-chrome); opacity: .65; }
+
+  /* click zones */
+  .zone { position: fixed; top: 0; bottom: 0; width: 25%; cursor: pointer; z-index: 5; }
+  .zone.left { left: 0; }
+  .zone.right { right: 0; }
+</style>
+</head>
+<body>
+  <div class="brand">Managing the Context Window</div>
+  <div class="stage" id="stage"></div>
+
+  <div class="zone left" onclick="prev()"></div>
+  <div class="zone right" onclick="next()"></div>
+
+  <div class="dots" id="dots"></div>
+  <div class="counter" id="counter">01 / 10</div>
+  <div class="nav-hint">← → to navigate</div>
+
+<script>
+  const slides = [
+    {
+      type: "bio",
+      name: "John Santerre, Ph.D.",
+      role: "Artificial Intelligence",
+      photo: "assets/headshot.png",
+      bullets: [
+        "NASA scientist",
+        "Professor, UC Berkeley & SMU",
+        "CTO — enterprise AI & architecture"
+      ],
+      linkedin: "https://www.linkedin.com/in/john-santerre-phd-91609b6/",
+      linkedinLabel: "LinkedIn"
+    },
+    {
+      type: "image",
+      kicker: "The landscape",
+      img: "assets/llm-landscape.png",
+      source: "https://informationisbeautiful.net/visualizations/the-rise-of-generative-ai-large-language-models-llms-like-chatgpt/",
+      sourceLabel: "Source: Information is Beautiful — The Rise of Generative AI / LLMs",
+      note: "AI Suite (Andrew Ng, 2024 · 13k★) — one interface to swap across many models. A marker of just how many new models had arrived, and how much choosing the right one for the job mattered at the time.",
+      noteUrl: "https://github.com/andrewyng/aisuite",
+      noteLabel: "github.com/andrewyng/aisuite"
+    },
+    {
+      type: "image",
+      title: "The only knob is a sentence.",
+      img: "assets/slide-free-text.png",
+      imgScale: 0.7,
+      caption: "A civilization-scale machine — and our entire control surface is a line of free text."
+    },
+    {
+      type: "image",
+      kicker: "The architecture",
+      img: "assets/harness-stack.png",
+      caption: "Fix: what's stable (static control plane) · Standardize: access (MCP) · Govern: what adapts (agentic harness)."
+    },
+    {
+      type: "image",
+      kicker: "Conversation history",
+      title: "Let recent chats inform the process.",
+      img: "assets/robot-memory.png",
+      imgScale: 0.5,
+      caption: "The chat history itself becomes context the model works from."
+    },
+    {
+      type: "image",
+      kicker: "Prompt engineering · NeurIPS 2023",
+      title: "If text is our only tool, prompt engineering is the solution.",
+      img: "assets/neurips-2023.png",
+      caption: "OpenAI presents strategies for prompt engineering, and the auditorium overflows — NeurIPS 2023."
+    },
+    {
+      type: "image",
+      kicker: "Persistent context files",
+      title: "Store local context, persistently.",
+      img: "assets/paper-piles.png",
+      imgScale: 0.625,
+      caption: "Durable instructions and project knowledge, declared once and loaded on every run — the CLAUDE.md files we keep alongside the code."
+    },
+    {
+      type: "image",
+      kicker: "RAG / retrieval",
+      title: "Manage the context more richly.",
+      img: "assets/rag-databases.png",
+      imgScale: 0.6,
+      caption: "Pull relevant context from a vector or graph database into the prompt — so the model reasons over the right material, not just our phrasing and base weights."
+    },
+    {
+      type: "image",
+      kicker: "Tool calling",
+      title: "Build tools that fetch context",
+      img: "assets/robot-forge.png",
+      imgScale: 0.6,
+      caption: "Build tools the model can call to fetch the context it needs, when it needs it."
+    },
+    {
+      type: "image",
+      kicker: "The architecture",
+      img: "assets/harness-stack.png",
+      caption: "Fix: what's stable (static control plane) · Standardize: access (MCP) · Govern: what adapts (agentic harness)."
+    },
+    {
+      type: "image",
+      kicker: "Tool calling · MCP",
+      title: "Standardizing model context pull",
+      img: "assets/tool-calling.png",
+      imgScale: 0.6,
+      caption: "Tool calling lets the model retrieve what it needs at runtime; MCP standardizes the connection — one governed, auditable interface to tools and data."
+    },
+    {
+      type: "image",
+      kicker: "The architecture",
+      img: "assets/harness-stack.png",
+      caption: "Fix: what's stable (static control plane) · Standardize: access (MCP) · Govern: what adapts (agentic harness)."
+    },
+    {
+      type: "image",
+      kicker: "Multi-agent collaboration",
+      title: "Agents that communicate",
+      img: "assets/agents-talking.png",
+      imgScale: 0.6,
+      caption: "Agents don't have to run in isolation. They can message each other, hand off work, and combine specialized roles into a single outcome."
+    },
+    {
+      type: "image",
+      kicker: "Thinking models",
+      title: "Looping and reflecting before answering",
+      img: "assets/thinking-models.png",
+      imgScale: 0.6,
+      caption: "A thinking model doesn't answer in one shot. It reasons step by step, acts, reflects on its own work, and revises — looping until the goal is met. This is a single agent (or a small number) working through the problem."
+    },
+    {
+      type: "html",
+      kicker: "Tool calling · then and now",
+      title: "Beyond hardcoded hierarchies",
+      html: `
+        <div class="cmp">
+          <div class="cmp-col before">
+            <h3>Before · hardcoded hierarchies</h3>
+            <div class="cmp-node">Developer</div>
+            <div class="cmp-arrow">&#8595;</div>
+            <div class="cmp-node">Fixed Orchestration Layer<small>predefined routing</small></div>
+            <div class="cmp-arrow">&#8595;</div>
+            <div class="cmp-node">Tool A &#8594; Tool B &#8594; Tool C<small>fixed order, brittle</small></div>
+            <div class="cmp-foot">Every tool and every path wired in advance.<br>A new capability means new code and a new release.</div>
+          </div>
+          <div class="cmp-col after">
+            <h3>Now · tools on demand</h3>
+            <div class="cmp-node">Model<small>selects what it needs at runtime</small></div>
+            <div class="cmp-arrow">&#8597;</div>
+            <div class="cmp-node">MCP &#183; one standard doorway<small>governed &amp; auditable</small></div>
+            <div class="cmp-arrow">&#8595;</div>
+            <div class="cmp-row">
+              <div class="cmp-node">Tool</div>
+              <div class="cmp-node">API</div>
+              <div class="cmp-node">DB</div>
+              <div class="cmp-node">Web</div>
+            </div>
+            <div class="cmp-foot">The model requests tools at runtime through one interface.<br>Add a tool, not a pipeline.</div>
+          </div>
+        </div>
+        <div class="cmp-note">Hooks &amp; triggers add the guardrails and structure on top of tool calling — standardizing <em>how</em> and <em>when</em> tools may run.</div>`
+    },
+    {
+      type: "image",
+      kicker: "Parallel sub-agents",
+      title: "Parallel sub-agents that talk to each other.",
+      img: "assets/parallel-agents.png",
+      imgScale: 0.6,
+      caption: "Now scale it up: a large number of agents working in parallel, communicating directly while they work — sharing findings, dividing labor, and coordinating in real time."
+    },
+    {
+      type: "html",
+      kicker: "How it all fits together",
+      title: "The context architecture, end to end.",
+      html: `
+        <div class="arch">
+          <div class="arch-col">
+            <div class="arch-group static"><span class="lbl">Static Control Plane</span>
+              <div class="box">Persistent Context Files<small>CLAUDE.md · rules · policies</small></div>
+              <div class="box">Symbol-Level Grounding<small>code &amp; schemas</small></div>
+              <div class="box">Shareable Setups<small>versioned config</small></div>
+            </div>
+            <div class="arch-group mem"><span class="lbl">Memory</span>
+              <div class="box">Conversation History<small>prior turns</small></div>
+            </div>
+            <div class="arch-group rag"><span class="lbl">Retrieval · RAG</span>
+              <div class="hrow">
+                <div class="box">Vector DB<small>discrete entries</small></div>
+                <div class="box">Graph DB<small>linked nodes</small></div>
+              </div>
+            </div>
+            <div class="arch-group door"><span class="lbl">The Doorway · MCP</span>
+              <div class="box">Tools · APIs · Web · Data<small>one audited interface</small></div>
+            </div>
+          </div>
+
+          <div class="arch-arrow">&#8594;</div>
+
+          <div class="arch-col">
+            <div class="arch-group harness"><span class="lbl">Agentic Harness · dynamic control plane</span>
+              <div class="hrow">
+                <div class="box mini">Orchestrator</div>
+                <div class="box mini">On-Demand Skills</div>
+                <div class="box mini">Hooks &amp; Triggers</div>
+                <div class="box mini">Parallel Sub-Agents</div>
+              </div>
+              <div class="arch-window">Context Window<small>assembled per run — static + dynamic</small></div>
+            </div>
+          </div>
+
+          <div class="arch-arrow">&#8594;</div>
+
+          <div class="arch-col">
+            <div class="arch-llm">LLM<small>execution layer</small></div>
+            <div class="arch-arrow down">&#8595;</div>
+            <div class="box resp">Response</div>
+            <div class="loop">&#8635; evals &amp; hooks validate, then loop</div>
+          </div>
+        </div>`
+    },
+    {
+      type: "cases",
+      kicker: "Case studies · regulated finance — 1 of 3",
+      title: "Infrastructure isolation & environment control",
+      lead: "Focus: keep AI workloads completely severed from the public internet and unauthorized eyes.",
+      cards: [
+        {
+          co: "JPMorgan Chase",
+          theme: "Proprietary “LLM Suite”",
+          body: "Navigated GLBA and DORA by internalizing AI in a proprietary “LLM Suite” and banning public consumer tools like ChatGPT to eliminate external data leakage. Its ML Center of Excellence built the “Fence” framework, generating synthetic data to simulate edge cases and prompt-injection attacks. That let it establish dynamic, use-case-specific guardrails without ever exposing real client data."
+        },
+        {
+          co: "allpay (UK)",
+          theme: "Microsoft tenancy containment",
+          body: "The UK payment provider accelerated a complex migration with GitHub Copilot while avoiding the regulatory risk of “shadow IT.” All AI development was confined strictly to its existing, pre-approved Microsoft cloud tenancy. That kept proprietary code and payment data inside UK data-residency boundaries, away from unauthorized public models."
+        },
+        {
+          co: "AI Prototyping Labs",
+          theme: "Industry-wide sandboxing",
+          body: "To satisfy consumer-protection law like the Gramm-Leach-Bliley Act (GLBA), institutions are architecting isolated “AI Prototyping Labs.” These are secure, sandboxed environments where developers and analysts experiment with natural-language programming and rapid iteration. Crucially, they are technically severed from core banking systems, live production databases, and GLBA-protected consumer data — so early experimentation can never leak sensitive records."
+        }
+      ],
+      note: "Deep-researcher generated.",
+      source: "https://docs.google.com/document/d/1fNmy1iqFq59ojBiQc2V0SpWNv2X4x4IIGxM_K_5m5Bc/edit?usp=sharing",
+      sourceLabel: "Full case studies — LLMs in Regulated Finance"
+    },
+    {
+      type: "cases",
+      kicker: "Case studies · regulated finance — 2 of 3",
+      title: "Rigid data governance & input masking",
+      lead: "Focus: control and sanitize the information that feeds into or trains the AI models.",
+      cards: [
+        {
+          co: "HSBC",
+          theme: "Grounding in trusted data",
+          body: "HSBC put generative AI to work on a highly regulated function — generating credit-analysis write-ups — rather than limiting it to coding or admin tasks. Because credit underwriting is heavily scrutinized for accuracy and fairness, the bank mitigated hallucination risk by forcing the AI to pull exclusively from vetted, trusted internal and external data sources. Controlling the inputs let HSBC accelerate the credit process while preserving the deterministic, rigorous standards that internal risk management requires."
+        },
+        {
+          co: "Rabobank",
+          theme: "Data masking & anonymization",
+          body: "Rabobank used Microsoft Copilot Studio and Azure AI Speech to build a conversational chat-and-voice customer-service interface. To navigate strict European privacy law such as GDPR during development, it established a rigorous data-masking protocol. All real customer conversations used in testing and validation were anonymized, ensuring no PII or sensitive banking detail reached the models before the system was certified for compliant deployment."
+        }
+      ],
+      note: "Deep-researcher generated.",
+      source: "https://docs.google.com/document/d/1fNmy1iqFq59ojBiQc2V0SpWNv2X4x4IIGxM_K_5m5Bc/edit?usp=sharing",
+      sourceLabel: "Full case studies — LLMs in Regulated Finance"
+    },
+    {
+      type: "cases",
+      kicker: "Case studies · regulated finance — 3 of 3",
+      title: "Human oversight & accountability enforcement",
+      lead: "Focus: hardcode human checkpoints so legal, professional, and operational liability stays with a human.",
+      cards: [
+        {
+          co: "Morgan Stanley",
+          theme: "Zero data retention + human-in-the-loop",
+          body: "For GPT-4 tools like “AI @ Morgan Stanley Debrief,” the firm negotiated a strict zero-data-retention mandate with OpenAI so its proprietary data never trains public models. It then hardcoded a human-in-the-loop control: AI-generated drafts cannot be sent without mandatory financial-advisor review and approval. That keeps licensure accountability with a person and anticipates frameworks like the EU AI Act."
+        },
+        {
+          co: "Goldman Sachs",
+          theme: "AI as draft generator only",
+          body: "Goldman Sachs recruits engineers fluent in AI coding assistants like Devin and Claude Code to cut time-to-market, but explicitly treats AI as a co-pilot, not an autonomous agent. Internal reviews acknowledged the tools, while fast, are prone to significant flaws and hallucinations on deeper integration. To stay compliant with model-risk expectations, the firm relies on highly skilled human engineers to oversee and correct every line of AI output before production."
+        },
+        {
+          co: "Banco Galicia",
+          theme: "Encrypted env + automated testing",
+          body: "Hit with an abrupt Central Bank of Argentina rule requiring a weekend-long infrastructure overhaul, the bank used GitHub Copilot to generate code and auto-generate exhaustive unit tests — cutting the testing timeline 60%. Full developer review of all output kept accountability with humans, not the model. All data stayed encrypted in transit and at rest inside their controlled Microsoft Azure environment."
+        }
+      ],
+      note: "Deep-researcher generated.",
+      source: "https://docs.google.com/document/d/1fNmy1iqFq59ojBiQc2V0SpWNv2X4x4IIGxM_K_5m5Bc/edit?usp=sharing",
+      sourceLabel: "Full case studies — LLMs in Regulated Finance"
+    },
+    {
+      type: "bullets",
+      kicker: "What it means for the work",
+      title: "Permission to build.",
+      bullets: [
+        { h: "Regulation is codified trust", d: "the systematic engineering of human trust — not a compliance checklist." },
+        { h: "We don't trust machines — we trust systems", d: "the guardrails, evals, and boundaries we build around them." },
+        { h: "The two-hour sandbox", d: "timebox the work; change the metric to mapping where it fails." },
+        { h: "Give yourself a promotion", d: "manage the model, and move up the stack." }
+      ]
+    },
+    {
+      type: "statement",
+      kicker: "Thank you",
+      title: "Thank you.",
+      caption: "John Santerre, Ph.D.",
+      source: "https://www.linkedin.com/in/john-santerre-phd-91609b6/",
+      sourceLabel: "LinkedIn"
+    }
+  ];
+
+  const stage = document.getElementById("stage");
+  const dotsEl = document.getElementById("dots");
+  const counterEl = document.getElementById("counter");
+  let idx = 0;
+
+  function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function nl2br(s){ return esc(s).replace(/\n/g,"<br>"); }
+
+  function render() {
+    stage.innerHTML = "";
+    slides.forEach((s, i) => {
+      const el = document.createElement("section");
+      el.className = "slide" + (i === idx ? " active" : "");
+
+      if (s.type === "bio") {
+        const photoInner = s.photo
+          ? `<img src="${esc(s.photo)}" alt="headshot">`
+          : `Photo`;
+        el.innerHTML = `
+          <div class="bio">
+            <div class="photo">${photoInner}</div>
+            <div class="who">
+              <div class="name">${nl2br(s.name)}</div>
+              <div class="role">${esc(s.role)}</div>
+              <ul>${s.bullets.map(b => `<li>${esc(b)}</li>`).join("")}</ul>
+              ${s.linkedin ? `<a class="bio-link" href="${esc(s.linkedin)}" target="_blank" rel="noopener">${esc(s.linkedinLabel || s.linkedin)}</a>` : ""}
+            </div>
+          </div>`;
+      } else if (s.type === "image") {
+        el.innerHTML = `
+          ${s.kicker ? `<div class="kicker">${esc(s.kicker)}</div>` : ""}
+          ${s.title ? `<div class="title">${nl2br(s.title)}</div>` : ""}
+          <div class="media"><img src="${esc(s.img)}" alt="${esc(s.title||s.kicker||"")}"${s.imgScale ? ` style="max-height:${(62*s.imgScale).toFixed(1)}vh;max-width:${(82*s.imgScale).toFixed(1)}vw;"` : ""}></div>
+          ${s.caption ? `<div class="caption">${esc(s.caption)}</div>` : ""}
+          ${s.note ? `<div class="note">${esc(s.note)}</div>` : ""}
+          ${s.noteUrl ? `<a class="source" href="${esc(s.noteUrl)}" target="_blank" rel="noopener">${esc(s.noteLabel || s.noteUrl)}</a>` : ""}
+          ${s.source ? `<a class="source" href="${esc(s.source)}" target="_blank" rel="noopener">${esc(s.sourceLabel || "Source")}</a>` : ""}`;
+      } else if (s.type === "statement") {
+        el.innerHTML = `
+          ${s.kicker ? `<div class="kicker">${esc(s.kicker)}</div>` : ""}
+          <div class="title">${nl2br(s.title)}</div>
+          ${s.caption ? `<div class="caption">${esc(s.caption)}</div>` : ""}
+          ${s.source ? `<a class="source" href="${esc(s.source)}" target="_blank" rel="noopener">${esc(s.sourceLabel || s.source)}</a>` : ""}`;
+      } else if (s.type === "html") {
+        el.innerHTML = `
+          ${s.kicker ? `<div class="kicker">${esc(s.kicker)}</div>` : ""}
+          ${s.title ? `<div class="title" style="font-size:var(--fs-h2);margin-bottom:2vh;">${nl2br(s.title)}</div>` : ""}
+          ${s.html}`;
+      } else if (s.type === "cases") {
+        el.innerHTML = `
+          ${s.kicker ? `<div class="kicker">${esc(s.kicker)}</div>` : ""}
+          <div class="title" style="font-size:var(--fs-h2);">${nl2br(s.title)}</div>
+          ${s.lead ? `<div class="cases-lead">${esc(s.lead)}</div>` : ""}
+          <div class="cases">${s.cards.map(c => `
+            <div class="case-card">
+              <div class="co">${esc(c.co)}</div>
+              <div class="theme">${esc(c.theme)}</div>
+              <p>${esc(c.body)}</p>
+            </div>`).join("")}</div>
+          ${s.note ? `<div class="note">${esc(s.note)}</div>` : ""}
+          ${s.source ? `<a class="source" href="${esc(s.source)}" target="_blank" rel="noopener">${esc(s.sourceLabel || "Source")}</a>` : ""}`;
+      } else if (s.type === "bullets") {
+        el.innerHTML = `
+          ${s.kicker ? `<div class="kicker">${esc(s.kicker)}</div>` : ""}
+          <div class="title">${nl2br(s.title)}</div>
+          <ul class="bullets">${s.bullets.map(b => `<li>${esc(b.h)}<small>${esc(b.d)}</small></li>`).join("")}</ul>`;
+      } else { // placeholder
+        el.innerHTML = `
+          <div class="title">${nl2br(s.title)}</div>
+          <div class="placeholder">
+            <div class="ph-tag">Central image to generate</div>
+            <div class="ph-desc">${esc(s.desc)}</div>
+          </div>`;
+      }
+      stage.appendChild(el);
+    });
+
+    dotsEl.innerHTML = slides.map((_, i) =>
+      `<div class="dot ${i===idx?"active":""}" onclick="go(${i})"></div>`).join("");
+    counterEl.textContent =
+      String(idx+1).padStart(2,"0") + " / " + String(slides.length).padStart(2,"0");
+
+    requestAnimationFrame(fitTitles);
+  }
+
+  // Keep every title on a single line: shrink the font only if it would overflow.
+  function fitTitles(){
+    const active = stage.querySelector(".slide.active");
+    if (!active) return;
+    const cs = getComputedStyle(active);
+    const avail = active.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    active.querySelectorAll(".title").forEach(t => {
+      const contentW = t.scrollWidth;
+      if (contentW > avail) {
+        const base = parseFloat(getComputedStyle(t).fontSize);
+        const fitted = Math.max(14, Math.floor(base * (avail / contentW)));
+        t.style.fontSize = fitted + "px";
+      }
+    });
+  }
+
+  function go(i){ idx = Math.max(0, Math.min(slides.length-1, i)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  let resizeTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(render, 120);
+  });
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { next(); e.preventDefault(); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { prev(); }
+    else if (e.key === "Home") { go(0); }
+    else if (e.key === "End") { go(slides.length-1); }
+  });
+
+  render();
+</script>
+</body>
+</html>
