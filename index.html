@@ -147,6 +147,15 @@
   .case-card .theme { font-size: var(--fs-small); color: var(--orange); font-weight: 700; margin: .45em 0 .9em; line-height: 1.25; }
   .case-card p { font-size: var(--fs-body); color: var(--muted); line-height: 1.45; margin: 0; }
 
+  /* ---- appendix · learn-more links ---- */
+  .appendix { display: flex; gap: 1.6vw; margin-top: 2.4vh; width: 100%; max-width: 1280px; align-items: stretch; }
+  .appendix-card { flex: 1; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.09); border-radius: 14px; padding: 2.4vh 1.3vw; text-align: left; display: flex; flex-direction: column; }
+  .appendix-card h3 { font-size: var(--fs-h3); color: var(--ink); margin-bottom: 1.4vh; line-height: 1.15; }
+  .appendix-card ol { list-style: decimal; padding-left: 1.3em; display: flex; flex-direction: column; gap: 1vh; margin: 0; }
+  .appendix-card li { font-size: var(--fs-small); line-height: 1.3; color: var(--muted); }
+  .appendix-card a { position: relative; z-index: 10; color: var(--teal); text-decoration: none; border-bottom: 1px solid rgba(25,194,194,.35); }
+  .appendix-card a:hover { color: #6fe3e3; border-bottom-color: #6fe3e3; }
+
   /* ---- before/after comparison slide ---- */
   .cmp { display: flex; gap: 2.4vw; margin-top: 3vh; width: 100%; max-width: 1120px; align-items: stretch; }
   .cmp-col { flex: 1; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 3vh 1.8vw; display: flex; flex-direction: column; align-items: center; }
@@ -541,7 +550,156 @@
       source: "https://www.linkedin.com/in/john-santerre-phd-91609b6/",
       sourceLabel: "LinkedIn",
       links: [
-        { url: "https://www.youtube.com/@santerreai/featured", label: "YouTube" }
+        { url: "https://www.youtube.com/@santerreai/featured", label: "YouTube" },
+        { url: "https://johnsanterre.github.io/AI_MindMap/", label: "AI MindMap" }
+      ]
+    },
+    {
+      type: "appendix",
+      kicker: "Appendix · learn more (1/4)",
+      title: "Foundations: models, prompting, context",
+      items: [
+        {
+          topic: "The model landscape",
+          links: [
+            { label: "Information is Beautiful — The Rise of Generative AI / LLMs", url: "https://informationisbeautiful.net/visualizations/the-rise-of-generative-ai-large-language-models-llms-like-chatgpt/" },
+            { label: "aisuite — one interface across many models (Andrew Ng)", url: "https://github.com/andrewyng/aisuite" },
+            { label: "LMArena — community model leaderboard", url: "https://lmarena.ai/" },
+            { label: "Stanford HELM — holistic model evaluation", url: "https://crfm.stanford.edu/helm/" },
+            { label: "Hugging Face — model hub", url: "https://huggingface.co/models" }
+          ]
+        },
+        {
+          topic: "Prompt engineering",
+          links: [
+            { label: "OpenAI — Prompt engineering guide", url: "https://developers.openai.com/api/docs/guides/prompt-engineering" },
+            { label: "Prompting Guide (DAIR.AI)", url: "https://www.promptingguide.ai/" },
+            { label: "Prompt Engineering Guide — GitHub", url: "https://github.com/dair-ai/Prompt-Engineering-Guide" },
+            { label: "Chain-of-Thought Prompting (Wei et al., 2022)", url: "https://arxiv.org/abs/2201.11903" },
+            { label: "Cameron Wolfe — Chain-of-Thought for LLMs", url: "https://cameronrwolfe.substack.com/p/chain-of-thought-prompting-for-llms" }
+          ]
+        },
+        {
+          topic: "Context engineering",
+          links: [
+            { label: "Anthropic — Effective context engineering for AI agents", url: "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" },
+            { label: "Anthropic — Managing context (editing + memory)", url: "https://www.anthropic.com/news/context-management" },
+            { label: "The Decoder — context vs. prompt engineering", url: "https://the-decoder.com/anthropic-claims-context-engineering-beats-prompt-engineering-when-managing-ai-agents/" },
+            { label: "Claude Code — glossary (context window, compaction)", url: "https://code.claude.com/docs/en/glossary" },
+            { label: "Context Is the New Prompt (overview)", url: "https://medium.com/data-science-collective/context-is-the-new-prompt-why-context-engineering-is-shaping-the-future-of-ai-46eb062ed270" }
+          ]
+        }
+      ]
+    },
+    {
+      type: "appendix",
+      kicker: "Appendix · learn more (2/4)",
+      title: "Feeding the context window",
+      items: [
+        {
+          topic: "Conversation history & memory",
+          links: [
+            { label: "Anthropic — Managing context: context editing & memory tool", url: "https://www.anthropic.com/news/context-management" },
+            { label: "Anthropic — Effective context engineering (compaction & notes)", url: "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" },
+            { label: "Claude Code — glossary (context window & compaction)", url: "https://code.claude.com/docs/en/glossary" },
+            { label: "The Decoder — “context rot” in long conversations", url: "https://the-decoder.com/anthropic-claims-context-engineering-beats-prompt-engineering-when-managing-ai-agents/" },
+            { label: "OpenAI — prompt engineering: message roles", url: "https://developers.openai.com/api/docs/guides/prompt-engineering" }
+          ]
+        },
+        {
+          topic: "Persistent context files (CLAUDE.md)",
+          links: [
+            { label: "Claude Code — How Claude remembers your project", url: "https://code.claude.com/docs/en/memory" },
+            { label: "Claude Code — glossary (CLAUDE.md, subagents, hooks)", url: "https://code.claude.com/docs/en/glossary" },
+            { label: "AGENTS.md — open instructions format", url: "https://agents.md/" },
+            { label: "Claude Code Guide — the memory system", url: "https://claudecodeguide.dev/docs/foundations/memory-system" },
+            { label: "Anthropic — Effective context engineering (system prompts)", url: "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" }
+          ]
+        },
+        {
+          topic: "Retrieval-augmented generation (RAG)",
+          links: [
+            { label: "RAG — original paper (Lewis et al., 2020)", url: "https://arxiv.org/abs/2005.11401" },
+            { label: "A Practitioner’s Guide to RAG (Cameron Wolfe)", url: "https://cameronrwolfe.substack.com/p/a-practitioners-guide-to-retrieval" },
+            { label: "What is a vector database? (Weaviate)", url: "https://weaviate.io/blog/what-is-a-vector-database" },
+            { label: "Microsoft — GraphRAG (knowledge-graph retrieval)", url: "https://www.microsoft.com/en-us/research/blog/graphrag-unlocking-llm-discovery-on-narrative-private-data/" },
+            { label: "GraphRAG paper — From Local to Global (2024)", url: "https://arxiv.org/abs/2404.16130" }
+          ]
+        }
+      ]
+    },
+    {
+      type: "appendix",
+      kicker: "Appendix · learn more (3/4)",
+      title: "Tools, protocols & the harness",
+      items: [
+        {
+          topic: "Tool calling (function calling)",
+          links: [
+            { label: "OpenAI — Function calling guide", url: "https://developers.openai.com/api/docs/guides/function-calling" },
+            { label: "ReAct — reasoning + acting (Yao et al., 2022)", url: "https://arxiv.org/abs/2210.03629" },
+            { label: "Anthropic — tool design lessons (multi-agent system)", url: "https://www.anthropic.com/engineering/multi-agent-research-system" },
+            { label: "Baseten — how tool calling works", url: "https://docs.baseten.co/inference/function-calling" },
+            { label: "Prompting Guide — ReAct prompting", url: "https://www.promptingguide.ai/techniques/react" }
+          ]
+        },
+        {
+          topic: "Model Context Protocol (MCP)",
+          links: [
+            { label: "MCP — What is the Model Context Protocol?", url: "https://modelcontextprotocol.io/docs/getting-started/intro" },
+            { label: "Anthropic — Introducing the Model Context Protocol", url: "https://www.anthropic.com/news/model-context-protocol" },
+            { label: "MCP — specification", url: "https://modelcontextprotocol.io/specification/2025-06-18" },
+            { label: "MCP — GitHub (spec, SDKs, schema)", url: "https://github.com/modelcontextprotocol/modelcontextprotocol" },
+            { label: "MCP — documentation site", url: "https://modelcontextprotocol.io" }
+          ]
+        },
+        {
+          topic: "Context engineering & the agentic harness",
+          links: [
+            { label: "Anthropic — Effective context engineering for AI agents", url: "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" },
+            { label: "Anthropic — How we built our multi-agent research system", url: "https://www.anthropic.com/engineering/multi-agent-research-system" },
+            { label: "Claude Code — glossary (hooks, subagents, MCP)", url: "https://code.claude.com/docs/en/glossary" },
+            { label: "Anthropic — Managing context (editing + memory)", url: "https://www.anthropic.com/news/context-management" },
+            { label: "MCP — getting started", url: "https://modelcontextprotocol.io/docs/getting-started/intro" }
+          ]
+        }
+      ]
+    },
+    {
+      type: "appendix",
+      kicker: "Appendix · learn more (4/4)",
+      title: "Agents, reasoning & governance",
+      items: [
+        {
+          topic: "Reasoning & reflection (“thinking” models)",
+          links: [
+            { label: "Chain-of-Thought Prompting (Wei et al., 2022)", url: "https://arxiv.org/abs/2201.11903" },
+            { label: "ReAct — reasoning + acting (Yao et al., 2022)", url: "https://arxiv.org/abs/2210.03629" },
+            { label: "Reflexion — verbal self-reflection (Shinn et al., 2023)", url: "https://arxiv.org/abs/2303.11366" },
+            { label: "Reflexion — code (GitHub)", url: "https://github.com/noahshinn024/reflexion" },
+            { label: "Cameron Wolfe — Chain-of-Thought for LLMs", url: "https://cameronrwolfe.substack.com/p/chain-of-thought-prompting-for-llms" }
+          ]
+        },
+        {
+          topic: "Multi-agent systems & parallel agents",
+          links: [
+            { label: "Anthropic — How we built our multi-agent research system", url: "https://www.anthropic.com/engineering/multi-agent-research-system" },
+            { label: "Simon Willison — notes on the multi-agent system", url: "https://simonwillison.net/2025/Jun/14/multi-agent-research-system/" },
+            { label: "ByteByteGo — how Anthropic built a multi-agent system", url: "https://blog.bytebytego.com/p/how-anthropic-built-a-multi-agent" },
+            { label: "Anthropic — sub-agent architectures (context engineering)", url: "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" },
+            { label: "ReAct — agents acting in a loop (2022)", url: "https://arxiv.org/abs/2210.03629" }
+          ]
+        },
+        {
+          topic: "AI governance in regulated industries",
+          links: [
+            { label: "NIST — AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework" },
+            { label: "NIST AI RMF 1.0 (PDF)", url: "https://nvlpubs.nist.gov/nistpubs/ai/nist.ai.100-1.pdf" },
+            { label: "EU AI Act — Regulation (EU) 2024/1689", url: "https://eur-lex.europa.eu/legal-content/EN/LSU/?uri=oj%3AL_202401689" },
+            { label: "European Commission — AI regulatory framework", url: "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai" },
+            { label: "Case studies — LLMs in Regulated Finance (deep-researcher)", url: "https://docs.google.com/document/d/1fNmy1iqFq59ojBiQc2V0SpWNv2X4x4IIGxM_K_5m5Bc/edit?usp=sharing" }
+          ]
+        }
       ]
     }
   ];
@@ -589,7 +747,8 @@
           <div class="title">${nl2br(s.title)}</div>
           ${s.caption ? `<div class="caption">${esc(s.caption)}</div>` : ""}
           ${s.source ? `<a class="source" href="${esc(s.source)}" target="_blank" rel="noopener">${esc(s.sourceLabel || s.source)}</a>` : ""}
-          ${(s.links || []).map(l => `<a class="source" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label || l.url)}</a>`).join("")}`;
+          ${(s.links || []).map(l => `<a class="source" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label || l.url)}</a>`).join("")}
+          ${s.note ? `<div class="note">${esc(s.note)}</div>` : ""}`;
       } else if (s.type === "html") {
         el.innerHTML = `
           ${s.kicker ? `<div class="kicker">${esc(s.kicker)}</div>` : ""}
@@ -608,6 +767,15 @@
             </div>`).join("")}</div>
           ${s.note ? `<div class="note">${esc(s.note)}</div>` : ""}
           ${s.source ? `<a class="source" href="${esc(s.source)}" target="_blank" rel="noopener">${esc(s.sourceLabel || "Source")}</a>` : ""}`;
+      } else if (s.type === "appendix") {
+        el.innerHTML = `
+          ${s.kicker ? `<div class="kicker">${esc(s.kicker)}</div>` : ""}
+          ${s.title ? `<div class="title" style="font-size:var(--fs-h2);">${nl2br(s.title)}</div>` : ""}
+          <div class="appendix">${s.items.map(it => `
+            <div class="appendix-card">
+              <h3>${esc(it.topic)}</h3>
+              <ol>${it.links.map(l => `<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a></li>`).join("")}</ol>
+            </div>`).join("")}</div>`;
       } else if (s.type === "bullets") {
         el.innerHTML = `
           ${s.kicker ? `<div class="kicker">${esc(s.kicker)}</div>` : ""}
