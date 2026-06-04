@@ -459,8 +459,16 @@
         </div>`
     },
     {
+      type: "image",
+      kicker: "Proof in practice",
+      title: "How are high-stakes environments succeeding with LLMs?",
+      img: "assets/hubble-trouble.png",
+      imgScale: 0.7,
+      caption: "Four strategic blueprints from high-stakes environments — and the controls that make them safe."
+    },
+    {
       type: "cases",
-      kicker: "Case studies · regulated finance — 1 of 3",
+      kicker: "Case studies · high-stakes environments — 1 of 4",
       title: "Infrastructure isolation & environment control",
       lead: "Focus: keep AI workloads completely severed from the public internet and unauthorized eyes.",
       cards: [
@@ -475,18 +483,21 @@
           body: "The UK payment provider accelerated a complex migration with GitHub Copilot while avoiding the regulatory risk of “shadow IT.” All AI development was confined strictly to its existing, pre-approved Microsoft cloud tenancy. That kept proprietary code and payment data inside UK data-residency boundaries, away from unauthorized public models."
         },
         {
-          co: "AI Prototyping Labs",
-          theme: "Industry-wide sandboxing",
-          body: "To satisfy consumer-protection law like the Gramm-Leach-Bliley Act (GLBA), institutions are architecting isolated “AI Prototyping Labs.” These are secure, sandboxed environments where developers and analysts experiment with natural-language programming and rapid iteration. Crucially, they are technically severed from core banking systems, live production databases, and GLBA-protected consumer data — so early experimentation can never leak sensitive records."
+          co: "Booz Allen (ISS)",
+          theme: "Air-gapped orbital RAG",
+          body: "To help astronauts with complex maintenance under extreme bandwidth and power limits, Booz Allen re-architected a RAG system to run on the International Space Station. Because any cloud dependency is a single point of failure in orbit, engineers radically downsized a foundational model to fit the hardware while preserving local reasoning. It runs entirely air-gapped at the edge — processing heavy flight manuals with no latency-heavy link to ground stations and no aerospace data-integrity violations."
         }
       ],
       note: "Deep-researcher generated.",
       source: "https://docs.google.com/document/d/1fNmy1iqFq59ojBiQc2V0SpWNv2X4x4IIGxM_K_5m5Bc/edit?usp=sharing",
-      sourceLabel: "Full case studies — LLMs in Regulated Finance"
+      sourceLabel: "Full case studies — LLMs in Regulated Finance",
+      links: [
+        { label: "Paper — LLMing in Zero-Margin Environments", url: "https://docs.google.com/document/d/1iw33Tob32tEIWqr0vc5T7WgZuGdCuC8YR_iKzE_7i5o/edit?usp=sharing" }
+      ]
     },
     {
       type: "cases",
-      kicker: "Case studies · regulated finance — 2 of 3",
+      kicker: "Case studies · high-stakes environments — 2 of 4",
       title: "Rigid data governance & input masking",
       lead: "Focus: control and sanitize the information that feeds into or trains the AI models.",
       cards: [
@@ -499,15 +510,23 @@
           co: "Rabobank",
           theme: "Data masking & anonymization",
           body: "Rabobank used Microsoft Copilot Studio and Azure AI Speech to build a conversational chat-and-voice customer-service interface. To navigate strict European privacy law such as GDPR during development, it established a rigorous data-masking protocol. All real customer conversations used in testing and validation were anonymized, ensuring no PII or sensitive banking detail reached the models before the system was certified for compliant deployment."
+        },
+        {
+          co: "Texas A&M (RADIANT-LLM)",
+          theme: "Forced source-grounding & citations",
+          body: "Air-gapped, multi-agent frameworks (RADIANT-LLM, AutoFLUKA, AutoSAM) compile esoteric nuclear input files and run legacy physics engines entirely on local machines. To meet Nuclear Regulatory Commission traceability standards, strict source-grounding code forces the AI to output exact page numbers and manual citations alongside every extraction — making every automated action instantly auditable by a human scientist. Governing the inputs here also means governing provenance of the outputs."
         }
       ],
       note: "Deep-researcher generated.",
       source: "https://docs.google.com/document/d/1fNmy1iqFq59ojBiQc2V0SpWNv2X4x4IIGxM_K_5m5Bc/edit?usp=sharing",
-      sourceLabel: "Full case studies — LLMs in Regulated Finance"
+      sourceLabel: "Full case studies — LLMs in Regulated Finance",
+      links: [
+        { label: "Paper — LLMing in Zero-Margin Environments", url: "https://docs.google.com/document/d/1iw33Tob32tEIWqr0vc5T7WgZuGdCuC8YR_iKzE_7i5o/edit?usp=sharing" }
+      ]
     },
     {
       type: "cases",
-      kicker: "Case studies · regulated finance — 3 of 3",
+      kicker: "Case studies · high-stakes environments — 3 of 4",
       title: "Human oversight & accountability enforcement",
       lead: "Focus: hardcode human checkpoints so legal, professional, and operational liability stays with a human.",
       cards: [
@@ -529,7 +548,39 @@
       ],
       note: "Deep-researcher generated.",
       source: "https://docs.google.com/document/d/1fNmy1iqFq59ojBiQc2V0SpWNv2X4x4IIGxM_K_5m5Bc/edit?usp=sharing",
-      sourceLabel: "Full case studies — LLMs in Regulated Finance"
+      sourceLabel: "Full case studies — LLMs in Regulated Finance",
+      links: [
+        { label: "Paper — LLMing in Zero-Margin Environments", url: "https://docs.google.com/document/d/1iw33Tob32tEIWqr0vc5T7WgZuGdCuC8YR_iKzE_7i5o/edit?usp=sharing" }
+      ]
+    },
+    {
+      type: "cases",
+      kicker: "Case studies · high-stakes environments — 4 of 4",
+      title: "Deterministic & physics-grounded guardrails",
+      lead: "Focus: box the probabilistic model inside a deterministic system — it translates and orchestrates, but never produces the consequential answer itself.",
+      cards: [
+        {
+          co: "NASA Goddard",
+          theme: "LLM orchestrates, physics computes",
+          body: "For mission-critical spacecraft hardware, NASA uses the LLM strictly as an orchestration agent — translating scientists' natural-language needs into rigid parameters. Those parameters feed a separate, deterministic physics engine that mathematically calculates structural loads and load paths. The model never decides the geometry; the math does. Every design is then stress-tested with mandatory human engineering sign-off before it's deemed airworthy."
+        },
+        {
+          co: "Argonne (PRO-AID)",
+          theme: "Symbolic engine intermediary",
+          body: "To put GPT-4 near real-time nuclear reactor fault diagnosis, Argonne refused to expose the model to raw sensor streams. A physics-based digital twin processes thermodynamic data first; a “symbolic engine” converts the precise fault matrices into a constrained data structure. The LLM is reduced to a localized natural-language translator that explains what is broken and how to fix it — with no room to hallucinate its own physical conclusions."
+        },
+        {
+          co: "NREL (eGridGPT)",
+          theme: "Live digital-twin validation",
+          body: "To stop grid operators from drowning in alarm floods, NREL's on-premise eGridGPT correlates streaming SCADA alerts against state estimations and contingency plans. Critically, it mathematically validates every proposed control action against a live Digital Twin of the grid before showing a recommendation to the human controller — ensuring suggestions stabilize transmission rather than trigger a cascading blackout."
+        }
+      ],
+      note: "Deep-researcher generated.",
+      source: "https://docs.google.com/document/d/1fNmy1iqFq59ojBiQc2V0SpWNv2X4x4IIGxM_K_5m5Bc/edit?usp=sharing",
+      sourceLabel: "Full case studies — LLMs in Regulated Finance",
+      links: [
+        { label: "Paper — LLMing in Zero-Margin Environments", url: "https://docs.google.com/document/d/1iw33Tob32tEIWqr0vc5T7WgZuGdCuC8YR_iKzE_7i5o/edit?usp=sharing" }
+      ]
     },
     {
       type: "bullets",
@@ -766,7 +817,8 @@
               <p>${esc(c.body)}</p>
             </div>`).join("")}</div>
           ${s.note ? `<div class="note">${esc(s.note)}</div>` : ""}
-          ${s.source ? `<a class="source" href="${esc(s.source)}" target="_blank" rel="noopener">${esc(s.sourceLabel || "Source")}</a>` : ""}`;
+          ${s.source ? `<a class="source" href="${esc(s.source)}" target="_blank" rel="noopener">${esc(s.sourceLabel || "Source")}</a>` : ""}
+          ${(s.links || []).map(l => `<a class="source" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label || l.url)}</a>`).join("")}`;
       } else if (s.type === "appendix") {
         el.innerHTML = `
           ${s.kicker ? `<div class="kicker">${esc(s.kicker)}</div>` : ""}
